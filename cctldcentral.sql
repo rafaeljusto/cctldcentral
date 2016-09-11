@@ -20,17 +20,17 @@ GRANT CONNECT ON DATABASE cctldcentral TO cctldcentral;
 --
 
 CREATE TABLE registered_domains (
+    cctld VARCHAR,
     date TIMESTAMP,
-    number INTEGER,
-    cctld VARCHAR
+    number INTEGER
 );
 
 --
--- Name: registered_domains_date_cctld_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: registered_domains_cctld_date_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
 ALTER TABLE ONLY registered_domains
-    ADD CONSTRAINT registered_domains_date_cctld_key UNIQUE (date, cctld);
+    ADD CONSTRAINT registered_domains_cctld_date_key UNIQUE (cctld, date);
 
 --
 -- Name: registered_domains; Type: ACL; Schema: public; Owner: postgres
