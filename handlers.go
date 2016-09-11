@@ -1,17 +1,37 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
 	"html/template"
 	"log"
 	"net/http"
-
 	"time"
 
 	"github.com/rafaeljusto/cctldcentral/db"
 )
 
 func cctldCentral(w http.ResponseWriter, r *http.Request) {
+	query := "SELECT DISTINCT cctld FROM registered_domains ORDER BY cctld"
+
+	rows, err := db.Connection.Query(query)
+	if err != nil {
+		log.Printf("Error executing a database query. Details: %s", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	var cctlds []string
+	for rows.Next() {
+		var cctld string
+		if err := rows.Scan(&cctld); err != nil {
+			log.Printf("Error reading data from the database. Details: %s", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		cctlds = append(cctlds, cctld)
+	}
+
 	t, err := template.New("cctld-central").Parse(ccTLDTemplate)
 	if err != nil {
 		log.Printf("Error parsing the template. Details: %s", err)
@@ -19,7 +39,13 @@ func cctldCentral(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := t.Execute(w, nil); err != nil {
+	data := struct {
+		CCTLDs []string
+	}{
+		CCTLDs: cctlds,
+	}
+
+	if err := t.Execute(w, data); err != nil {
 		log.Printf("Error executing the template. Details: %s", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -27,9 +53,19 @@ func cctldCentral(w http.ResponseWriter, r *http.Request) {
 }
 
 func registeredDomains(w http.ResponseWriter, r *http.Request) {
-	query := "SELECT date, SUM(number) FROM registered_domains GROUP BY date ORDER BY date"
+	var query string
+	var rows *sql.Rows
+	var err error
 
-	rows, err := db.Connection.Query(query)
+	if cctld := r.URL.Query().Get("cctld"); cctld != "" {
+		query = "SELECT date, SUM(number) FROM registered_domains WHERE cctld = $1 GROUP BY date ORDER BY date"
+		rows, err = db.Connection.Query(query, cctld)
+
+	} else {
+		query = "SELECT date, SUM(number) FROM registered_domains GROUP BY date ORDER BY date"
+		rows, err = db.Connection.Query(query)
+	}
+
 	if err != nil {
 		log.Printf("Error executing a database query. Details: %s", err)
 		w.WriteHeader(http.StatusInternalServerError)
