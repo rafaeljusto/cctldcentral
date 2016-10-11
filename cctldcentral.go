@@ -18,6 +18,11 @@ func main() {
 		log.Fatalf("Error initializing the database connection. Details: %s", err)
 	}
 
+	stopScheduler := startScheduler()
+	defer func() {
+		close(stopScheduler)
+	}()
+
 	http.Handle("/", http.HandlerFunc(cctldCentral))
 	http.Handle("/domains/registered", http.HandlerFunc(registeredDomains))
 	log.Fatal(http.ListenAndServe(":80", nil))

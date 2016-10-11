@@ -37,3 +37,25 @@ ALTER TABLE ONLY registered_domains
 --
 
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE registered_domains TO cctldcentral;
+
+--
+-- Name: cctld_server; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE cctld_server (
+    cctld VARCHAR,
+    server INET
+);
+
+--
+-- Name: cctld_server_cctld_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY cctld_server
+    ADD CONSTRAINT cctld_server_cctld_key UNIQUE (cctld);
+
+--
+-- Name: cctld_server; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE cctld_server TO cctldcentral;

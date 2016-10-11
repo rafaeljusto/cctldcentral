@@ -1,6 +1,10 @@
 package config
 
-import "github.com/kelseyhightower/envconfig"
+import (
+	"time"
+
+	"github.com/kelseyhightower/envconfig"
+)
 
 const prefix = "cctldcentral"
 
@@ -23,6 +27,11 @@ type cctldstatsConfig struct {
 		// Host address of the database
 		Host string `envconfig:"host"`
 	} `envconfig:"database"`
+
+	Scheduler struct {
+		Timeout time.Duration `envconfig:"timeout"`
+		Retries int           `envconfig:"retries"`
+	} `envconfig:"scheduler"`
 }
 
 // Load fill the global configuration variable using default values and environment variables.
@@ -31,6 +40,8 @@ func Load() error {
 	CCTLDCentral.Database.Name = "cctldcentral"
 	CCTLDCentral.Database.Username = "cctldcentral"
 	CCTLDCentral.Database.Host = "localhost:5432"
+	CCTLDCentral.Scheduler.Timeout = 5 * time.Second
+	CCTLDCentral.Scheduler.Retries = 3
 
 	if err := envconfig.Process(prefix, CCTLDCentral); err != nil {
 		return err
