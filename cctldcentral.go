@@ -1,6 +1,8 @@
 package main
 
 import (
+	"flag"
+	"fmt"
 	"log"
 	"net/http"
 
@@ -9,7 +11,15 @@ import (
 	"github.com/rafaeljusto/cctldcentral/db"
 )
 
+var port int
+
+func init() {
+	flag.IntVar(&port, "port", 80, "server listen port")
+}
+
 func main() {
+	flag.Parse()
+
 	if err := config.Load(); err != nil {
 		log.Fatalf("Error initializing configuration. Details: %s", err)
 	}
@@ -25,5 +35,5 @@ func main() {
 
 	http.Handle("/", http.HandlerFunc(cctldCentral))
 	http.Handle("/domains/registered", http.HandlerFunc(registeredDomains))
-	log.Fatal(http.ListenAndServe(":80", nil))
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", port), nil))
 }

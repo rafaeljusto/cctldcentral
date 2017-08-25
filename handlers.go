@@ -58,11 +58,11 @@ func registeredDomains(w http.ResponseWriter, r *http.Request) {
 	var err error
 
 	if cctld := r.URL.Query().Get("cctld"); cctld != "" {
-		query = "SELECT date, SUM(number) FROM registered_domains WHERE cctld = $1 GROUP BY date ORDER BY date"
+		query = "SELECT CAST(date AS DATE), SUM(number) FROM registered_domains WHERE cctld = $1 GROUP BY CAST(date AS DATE) ORDER BY CAST(date AS DATE)"
 		rows, err = db.Connection.Query(query, cctld)
 
 	} else {
-		query = "SELECT date, SUM(number) FROM registered_domains GROUP BY date ORDER BY date"
+		query = "SELECT CAST(date AS DATE), SUM(number) FROM registered_domains GROUP BY CAST(date AS DATE) ORDER BY CAST(date AS DATE)"
 		rows, err = db.Connection.Query(query)
 	}
 
