@@ -57,9 +57,30 @@ func registeredDomains(w http.ResponseWriter, r *http.Request) {
 	var rows *sql.Rows
 	var err error
 
-	if cctld := r.URL.Query().Get("cctld"); cctld != "" {
+	cctld := r.URL.Query().Get("cctld")
+
+	var period time.Duration
+	if periodStr := r.URL.Query().Get("period"); periodStr != "" {
+		if period, err = time.ParseDuration(periodStr); err != nil {
+			log.Printf("Invalid duration '%s'. Details: %s", periodStr, err)
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+	}
+
+	if cctld != "" && period > 0 {
+		from := time.Now().UTC().Add(-period)
+		query = "SELECT CAST(date AS DATE), SUM(number) FROM registered_domains WHERE cctld = $1 AND date > $2 GROUP BY CAST(date AS DATE) ORDER BY CAST(date AS DATE)"
+		rows, err = db.Connection.Query(query, cctld, from)
+
+	} else if cctld != "" {
 		query = "SELECT CAST(date AS DATE), SUM(number) FROM registered_domains WHERE cctld = $1 GROUP BY CAST(date AS DATE) ORDER BY CAST(date AS DATE)"
 		rows, err = db.Connection.Query(query, cctld)
+
+	} else if period > 0 {
+		from := time.Now().UTC().Add(-period)
+		query = "SELECT CAST(date AS DATE), SUM(number) FROM registered_domains WHERE date > $1 GROUP BY CAST(date AS DATE) ORDER BY CAST(date AS DATE)"
+		rows, err = db.Connection.Query(query, from)
 
 	} else {
 		query = "SELECT CAST(date AS DATE), SUM(number) FROM registered_domains GROUP BY CAST(date AS DATE) ORDER BY CAST(date AS DATE)"

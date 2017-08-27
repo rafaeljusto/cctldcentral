@@ -90,6 +90,10 @@ var ccTLDTemplate = `
       .main .page-header {
         margin-top: 0;
       }
+
+      .cctld-period {
+        margin: 15px 0px 15px 0px;
+      }
     </style>
   </head>
   <body>
@@ -128,6 +132,13 @@ var ccTLDTemplate = `
           <h1 class="page-header">Statistics</h1>
           <h2 class="sub-header" id="title">All Registered Domains</h2>
           <input type="hidden" id="cctld" />
+          <input type="hidden" id="period" />
+
+          <div class="cctld-period">
+            <button class="btn btn-default btn-primary" id="cctld-period-all-time" onclick="changePeriod('', this)">All Time</button>
+            <button class="btn btn-default" onclick="changePeriod('8760h', this)">Last Year</button>
+            <button class="btn btn-default" onclick="changePeriod('730h', this)">Last Month</button>
+          </div>
 
           <canvas id="registered-domains" width="400" height="200"></canvas>
 
@@ -136,8 +147,21 @@ var ccTLDTemplate = `
 
             function retrieveStatistics() {
               var url = "/domains/registered";
+
+              var filter = "";
               if ($("#cctld").val() != "") {
-                url += "?cctld=" + $("#cctld").val();
+                filter += "cctld=" + $("#cctld").val();
+              }
+
+              if ($("#period").val() != "") {
+                if (filter != "") {
+                  filter += "&";
+                }
+                filter += "period=" + $("#period").val();
+              }
+
+              if (filter != "") {
+                url += "?" + filter;
               }
 
               $.ajax({ url: url })
@@ -195,8 +219,22 @@ var ccTLDTemplate = `
               }
 
               $("#cctld").val(cctld);
+              $("#period").val("");
+              $(".cctld-period button").removeClass("btn-primary");
+              $("#cctld-period-all-time").addClass("btn-primary");
               $(".nav li").removeClass("active");
               $(caller).addClass("active");
+              retrieveStatistics();
+            }
+
+            function changePeriod(period, caller) {
+              if ($("#period").val() == period) {
+                return;
+              }
+
+              $("#period").val(period);
+              $(".cctld-period button").removeClass("btn-primary");
+              $(caller).addClass("btn-primary");
               retrieveStatistics();
             }
 
