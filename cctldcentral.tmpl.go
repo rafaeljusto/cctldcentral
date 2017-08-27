@@ -132,6 +132,8 @@ var ccTLDTemplate = `
           <canvas id="registered-domains" width="400" height="200"></canvas>
 
           <script>
+            var chart;
+
             function retrieveStatistics() {
               var url = "/domains/registered";
               if ($("#cctld").val() != "") {
@@ -140,8 +142,12 @@ var ccTLDTemplate = `
 
               $.ajax({ url: url })
                 .done(function(data) {
+                  if (chart) {
+                    chart.destroy();
+                  }
+
                   var ctx = document.getElementById("registered-domains");
-                  var registeredDomains = new Chart(ctx, {
+                  chart = new Chart(ctx, {
                     type: 'line',
                     data: {
                       labels: data.labels,
