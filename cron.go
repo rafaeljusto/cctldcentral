@@ -11,17 +11,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/jasonlvhit/gocron"
 	"github.com/rafaeljusto/cctldcentral/config"
 	"github.com/rafaeljusto/cctldcentral/db"
 	"github.com/rafaeljusto/cctldstats/protocol"
 )
-
-func startScheduler() chan bool {
-	scheduler := gocron.NewScheduler()
-	scheduler.Every(1).Day().At("00:00").Do(runSchedulerTask, nil)
-	return scheduler.Start()
-}
 
 func runSchedulerTask() {
 	rows, err := db.Connection.Query(`SELECT cctld, server FROM cctld_server`)
@@ -55,8 +48,8 @@ func runSchedulerTask() {
 	checkWebsite("gt", "https://www.gt/", regexp.MustCompile(`<div class="span count-domains">[\s\n]*<span>([0-9]+)`))
 	checkWebsite("uy", "https://www.nic.uy/Registrar/estadist/index.htm", regexp.MustCompile(`<td align="right" id="Tot-UY">([0-9]+)`))
 	checkWebsite("pe", "https://punto.pe", regexp.MustCompile(`<div class="total">[\s\n]*<p>[\s\n]*<span class="num">([0-9]+)`))
-	checkWebsite("mx", "https://www.registry.mx/jsf/domain_statistics/instant/iinfo_nb.jsf", regexp.MustCompile(`<td class="InteriorCursosCalendarioListaFila"><strong>TOTAL</strong></td>[\s\n]*<td class="InteriorCursosCalendarioListaFila" style="text-align: right"><strong>(([0-9]+\,)*[0-9]+)`))
-	checkWebsite("hn", "http://nic.hn/", regexp.MustCompile(`<strong>Total de Dominios Registrados</strong></p>[\s\n]*<div align="center"><span style="color: red; font-family: arial; font-size: 300%;"><strong><em>(([0-9]+\,)*[0-9]+)`))
+	checkWebsite("mx", "https://www.registry.mx/jsf/domain_statistics/instant/iinfo_nb.jsf", regexp.MustCompile(`<td class="InteriorCursosCalendarioListaFila"><strong>TOTAL</strong></td>[\s\n]*<td class="InteriorCursosCalendarioListaFila" style="text-align: right"><strong>(([0-9]+,)*[0-9]+)`))
+	checkWebsite("hn", "http://nic.hn/", regexp.MustCompile(`<strong>Total de Dominios Registrados</strong></p>[\s\n]*<div align="center"><span style="color: red; font-family: arial; font-size: 300%;"><strong><em>(([0-9]+,)*[0-9]+)`))
 	checkWebsite("ar", "https://nic.ar/nic-argentina/en-cifras", regexp.MustCompile(`(([0-9]+\.)+[0-9]+)</td>[\n\s]*</tr>`))
 	checkWebsite("do", "https://www.nic.do/en/domain-names-registered-under-do-instantly/", regexp.MustCompile(`<th align="left">Total</th><th align="left">([0-9]+)`))
 	checkWebsite("cl", "https://www.nic.cl/estadisticas/numDominios.json", regexp.MustCompile(`([0-9]+),"f":null}\]}[\n\s]*]`))

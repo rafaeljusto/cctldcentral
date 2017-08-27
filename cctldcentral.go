@@ -9,6 +9,7 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/rafaeljusto/cctldcentral/config"
 	"github.com/rafaeljusto/cctldcentral/db"
+	"github.com/robfig/cron"
 )
 
 var port int
@@ -19,6 +20,7 @@ func init() {
 
 func main() {
 	flag.Parse()
+	log.Println("Starting cctldcentral")
 
 	if err := config.Load(); err != nil {
 		log.Fatalf("Error initializing configuration. Details: %s", err)
@@ -28,9 +30,12 @@ func main() {
 		log.Fatalf("Error initializing the database connection. Details: %s", err)
 	}
 
-	stopScheduler := startScheduler()
+	scheduler := cron.New()
+	scheduler.AddFunc("0 0 1 * * *", runSchedulerTask)
+	scheduler.Start()
+
 	defer func() {
-		close(stopScheduler)
+		scheduler.Stop()
 	}()
 
 	http.Handle("/", http.HandlerFunc(cctldCentral))
